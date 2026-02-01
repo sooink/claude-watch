@@ -1,0 +1,57 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Get version from tag
+        id: version
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Get previous tag
+        id: prev_tag
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          echo "tag=$PREV_TAG" >> $GITHUB_OUTPUT
+
+      - name: Read CHANGELOG
+        id: changelog
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          PREV_TAG: ${{ steps.prev_tag.outputs.tag }}
+          CURRENT_TAG: ${{ github.ref_name }}
+          REPO: ${{ github.repository }}
+        run: |
+          # Extract section for this version only (between version header and next ## header)
+          CHANGES=$(sed -n "/^## ${VERSION}$/,/^## /p" CHANGELOG.md | sed '1d;$d')
+
+          # Add Full Changelog link if previous tag exists
+          if [ -n "$PREV_TAG" ]; then
+            LINK="**Full Changelog**: https://github.com/${REPO}/compare/${PREV_TAG}...${CURRENT_TAG}"
+            CHANGES=$(printf "%s\n\n---\n\n%s" "$CHANGES" "$LINK")
+          fi
+
+          echo "changes<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body: ${{ steps.changelog.outputs.changes }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

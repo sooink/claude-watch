@@ -1,0 +1,432 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A100000100000001 /* ClaudeWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000100000001 /* ClaudeWatchApp.swift */; };
+		A100000100000002 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000100000002 /* AppDelegate.swift */; };
+		A100000100000003 /* WatchState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000100000003 /* WatchState.swift */; };
+		A100000100000004 /* Project.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000100000004 /* Project.swift */; };
+		A100000100000005 /* Subagent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000100000005 /* Subagent.swift */; };
+		A100000100000006 /* TaskItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000100000006 /* TaskItem.swift */; };
+		A100000100000008 /* ProcessMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000100000008 /* ProcessMonitor.swift */; };
+		A100000100000009 /* FileWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000100000009 /* FileWatcher.swift */; };
+		A100000100000010 /* SessionParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000100000010 /* SessionParser.swift */; };
+		A100000100000011 /* WatchCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000100000011 /* WatchCoordinator.swift */; };
+		A100000100000012 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000100000012 /* MenuBarView.swift */; };
+		A100000100000013 /* DropdownPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000100000013 /* DropdownPanel.swift */; };
+		A100000100000014 /* ProjectRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000100000014 /* ProjectRow.swift */; };
+		A100000100000015 /* SubagentRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000100000015 /* SubagentRow.swift */; };
+		A100000100000016 /* TaskItemRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000100000016 /* TaskItemRow.swift */; };
+		A100000100000017 /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000100000017 /* EmptyStateView.swift */; };
+		A100000100000018 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A200000100000018 /* Assets.xcassets */; };
+		A100000100000019 /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000100000021 /* AboutView.swift */; };
+		A100000100000020 /* TitlebarStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000100000022 /* TitlebarStatusView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		A200000100000000 /* ClaudeWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ClaudeWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A200000100000001 /* ClaudeWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeWatchApp.swift; sourceTree = "<group>"; };
+		A200000100000002 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		A200000100000003 /* WatchState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchState.swift; sourceTree = "<group>"; };
+		A200000100000004 /* Project.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Project.swift; sourceTree = "<group>"; };
+		A200000100000005 /* Subagent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Subagent.swift; sourceTree = "<group>"; };
+		A200000100000006 /* TaskItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskItem.swift; sourceTree = "<group>"; };
+		A200000100000008 /* ProcessMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessMonitor.swift; sourceTree = "<group>"; };
+		A200000100000009 /* FileWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileWatcher.swift; sourceTree = "<group>"; };
+		A200000100000010 /* SessionParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionParser.swift; sourceTree = "<group>"; };
+		A200000100000011 /* WatchCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchCoordinator.swift; sourceTree = "<group>"; };
+		A200000100000012 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
+		A200000100000013 /* DropdownPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropdownPanel.swift; sourceTree = "<group>"; };
+		A200000100000014 /* ProjectRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectRow.swift; sourceTree = "<group>"; };
+		A200000100000015 /* SubagentRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubagentRow.swift; sourceTree = "<group>"; };
+		A200000100000016 /* TaskItemRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskItemRow.swift; sourceTree = "<group>"; };
+		A200000100000017 /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
+		A200000100000018 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A200000100000019 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A200000100000020 /* ClaudeWatch.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ClaudeWatch.entitlements; sourceTree = "<group>"; };
+		A200000100000021 /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
+		A200000100000022 /* TitlebarStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TitlebarStatusView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A300000100000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		A400000100000000 = {
+			isa = PBXGroup;
+			children = (
+				A400000100000001 /* ClaudeWatch */,
+				A400000100000002 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A400000100000001 /* ClaudeWatch */ = {
+			isa = PBXGroup;
+			children = (
+				A200000100000001 /* ClaudeWatchApp.swift */,
+				A200000100000002 /* AppDelegate.swift */,
+				A400000100000003 /* Models */,
+				A400000100000004 /* Services */,
+				A400000100000005 /* Views */,
+				A400000100000006 /* Resources */,
+				A200000100000019 /* Info.plist */,
+				A200000100000020 /* ClaudeWatch.entitlements */,
+			);
+			path = ClaudeWatch;
+			sourceTree = "<group>";
+		};
+		A400000100000002 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A200000100000000 /* ClaudeWatch.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A400000100000003 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				A200000100000003 /* WatchState.swift */,
+				A200000100000004 /* Project.swift */,
+				A200000100000005 /* Agent.swift */,
+				A200000100000006 /* TaskItem.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		A400000100000004 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				A200000100000008 /* ProcessMonitor.swift */,
+				A200000100000009 /* FileWatcher.swift */,
+				A200000100000010 /* SessionParser.swift */,
+				A200000100000011 /* WatchCoordinator.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		A400000100000005 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				A200000100000012 /* MenuBarView.swift */,
+				A200000100000013 /* DropdownPanel.swift */,
+				A200000100000014 /* ProjectRow.swift */,
+				A200000100000015 /* AgentRow.swift */,
+				A200000100000016 /* TaskItemRow.swift */,
+				A200000100000017 /* EmptyStateView.swift */,
+				A200000100000021 /* AboutView.swift */,
+				A200000100000022 /* TitlebarStatusView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		A400000100000006 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				A200000100000018 /* Assets.xcassets */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A500000100000001 /* ClaudeWatch */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A700000100000001 /* Build configuration list for PBXNativeTarget "ClaudeWatch" */;
+			buildPhases = (
+				A600000100000001 /* Sources */,
+				A300000100000001 /* Frameworks */,
+				A600000100000002 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ClaudeWatch;
+			productName = ClaudeWatch;
+			productReference = A200000100000000 /* ClaudeWatch.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A800000100000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					A500000100000001 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = A700000100000002 /* Build configuration list for PBXProject "ClaudeWatch" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = A400000100000000;
+			productRefGroup = A400000100000002 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A500000100000001 /* ClaudeWatch */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A600000100000002 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A100000100000018 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A600000100000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A100000100000001 /* ClaudeWatchApp.swift in Sources */,
+				A100000100000002 /* AppDelegate.swift in Sources */,
+				A100000100000003 /* WatchState.swift in Sources */,
+				A100000100000004 /* Project.swift in Sources */,
+				A100000100000005 /* Agent.swift in Sources */,
+				A100000100000006 /* TaskItem.swift in Sources */,
+				A100000100000008 /* ProcessMonitor.swift in Sources */,
+				A100000100000009 /* FileWatcher.swift in Sources */,
+				A100000100000010 /* SessionParser.swift in Sources */,
+				A100000100000011 /* WatchCoordinator.swift in Sources */,
+				A100000100000012 /* MenuBarView.swift in Sources */,
+				A100000100000013 /* DropdownPanel.swift in Sources */,
+				A100000100000014 /* ProjectRow.swift in Sources */,
+				A100000100000015 /* AgentRow.swift in Sources */,
+				A100000100000016 /* TaskItemRow.swift in Sources */,
+				A100000100000017 /* EmptyStateView.swift in Sources */,
+				A100000100000019 /* AboutView.swift in Sources */,
+				A100000100000020 /* TitlebarStatusView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		A900000100000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		A900000100000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		A900000100000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = ClaudeWatch/ClaudeWatch.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ClaudeWatch/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.sooink.ClaudeWatch;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		A900000100000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = ClaudeWatch/ClaudeWatch.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ClaudeWatch/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.sooink.ClaudeWatch;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A700000100000001 /* Build configuration list for PBXNativeTarget "ClaudeWatch" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A900000100000003 /* Debug */,
+				A900000100000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A700000100000002 /* Build configuration list for PBXProject "ClaudeWatch" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A900000100000001 /* Debug */,
+				A900000100000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A800000100000001 /* Project object */;
+}
