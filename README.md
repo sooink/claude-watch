@@ -66,6 +66,8 @@ xattr -cr build/ClaudeWatch.app
 | **Subagent Tracking** | See all parallel subagents and their status |
 | **Task Progress** | View task checklist with completion status |
 | **Multi-Project** | Monitor multiple projects simultaneously |
+| **Session Status** | Real-time session indicator via Claude Code hooks |
+| **Notifications** | macOS notifications when sessions complete |
 | **Zero Configuration** | Just launch and it works |
 
 <div align="center">
@@ -105,13 +107,39 @@ When Claude Code runs, it writes activity logs that Claude Watch parses in real-
 | ●3 | Active | Number indicates running subagents |
 
 - **Left-click** — Toggle main window
-- **Right-click** — Show menu (About, Quit)
+- **Right-click** — Show menu (Settings, About, Quit)
 
 ### Window
 
 - **Titlebar** — Current watch state with pulse animation when watching
 - **Project cards** — Click to expand/collapse details
 - **Right-click menu** — Open in Terminal, Copy Path
+
+## Hook Integration (CLI Only)
+
+Claude Watch can integrate with Claude Code CLI hooks for enhanced session tracking:
+
+| Feature | Description |
+|---------|-------------|
+| **Session Indicator** | Green blinking dot when Claude is working |
+| **Completion Notifications** | macOS notification when session ends |
+| **One-Click Setup** | Toggle enables hook — script installed automatically |
+
+### Setup
+
+1. Open **Settings** (right-click menu bar icon)
+2. Enable **Hook Integration** — this installs the hook script to `~/.claude/hooks/`
+3. Optionally enable **Notifications**
+
+### CLI vs VSCode Extension
+
+| Feature | CLI | VSCode Extension |
+|---------|-----|------------------|
+| Subagent/Task Detection | ✅ | ✅ |
+| Session Status (Hook) | ✅ | ❌ |
+| Completion Notifications | ✅ | ❌ |
+
+> **Note:** VSCode Claude Code Extension does not support hooks ([Issue #16114](https://github.com/anthropics/claude-code/issues/16114)). Session detection and notifications only work with the CLI.
 
 ## Requirements
 

@@ -5,16 +5,25 @@ struct ProjectRow: View {
     @Binding var project: Project
     @State private var isHovered = false
 
+    private let settings = AppSettings.shared
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Project header (entire area clickable)
             Button(action: { project.isExpanded.toggle() }) {
                 VStack(alignment: .leading, spacing: 6) {
-                    // Project name
-                    Text(project.displayName)
-                        .font(.body.bold())
-                        .foregroundColor(.primary)
-                        .lineLimit(1)
+                    // Project name with session indicator
+                    HStack(spacing: 6) {
+                        if settings.hookEnabled &&
+                           settings.indicatorEnabled &&
+                           project.sessionStatus != .unknown {
+                            SessionIndicator(status: project.sessionStatus)
+                        }
+                        Text(project.displayName)
+                            .font(.body.bold())
+                            .foregroundColor(.primary)
+                            .lineLimit(1)
+                    }
 
                     // Summary info (collapsed state only)
                     if !project.isExpanded {

@@ -6,6 +6,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem?
     private var mainWindow: NSWindow?
     private var aboutWindow: NSWindow?
+    private var settingsWindow: NSWindow?
+    private var hookSetupWindow: NSWindow?
     private var coordinator: WatchCoordinator?
     private var titlebarAccessory: NSTitlebarAccessoryViewController?
     private var titlebarStatusView: NSHostingView<TitlebarStatusView>?
@@ -19,6 +21,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Setup main window
         setupMainWindow()
+
+        // Setup notification observers
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(showHookSetup),
+            name: .showHookSetup,
+            object: nil
+        )
 
         // Start monitoring
         coordinator?.start()
@@ -118,6 +128,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         menu.addItem(NSMenuItem.separator())
 
+        let settingsItem = NSMenuItem(title: "Settings...", action: #selector(showSettings), keyEquivalent: ",")
+        settingsItem.target = self
+        menu.addItem(settingsItem)
+
         let aboutItem = NSMenuItem(title: "About Claude Watch", action: #selector(showAbout), keyEquivalent: "")
         aboutItem.target = self
         menu.addItem(aboutItem)
@@ -178,6 +192,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    @objc private func showSettings() {
+        if settingsWindow == nil {
+            let hostingView = NSHostingView(rootView: SettingsView())
+            hostingView.setFrameSize(hostingView.fittingSize)
+
+            settingsWindow = NSWindow(
+                contentRect: NSRect(origin: .zero, size: hostingView.fittingSize),
+                styleMask: [.titled, .closable],
+                backing: .buffered,
+                defer: false
+            )
+            settingsWindow?.contentView = hostingView
+            settingsWindow?.title = "Settings"
+            settingsWindow?.isReleasedWhenClosed = false
+            settingsWindow?.center()
+        }
+
+        settingsWindow?.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
     @objc private func showAbout() {
         if aboutWindow == nil {
             aboutWindow = NSWindow(
@@ -193,6 +228,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         aboutWindow?.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
+    @objc func showHookSetup() {
+        if hookSetupWindow == nil {
+            hookSetupWindow = NSWindow(
+                contentRect: NSRect(x: 0, y: 0, width: 580, height: 620),
+                styleMask: [.titled, .closable],
+                backing: .buffered,
+                defer: false
+            )
+            hookSetupWindow?.contentView = NSHostingView(rootView: HookSetupView())
+            hookSetupWindow?.title = "Hook Setup Guide"
+            hookSetupWindow?.isReleasedWhenClosed = false
+            hookSetupWindow?.center()
+        }
+
+        hookSetupWindow?.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
     }
 
