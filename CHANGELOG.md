@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.0
+
+- Add hook integration for real-time session tracking via Unix domain socket
+- Add terminal app selection for "Open in Terminal" context menu
+- Add settings view for configuration
+
 ## 0.1.0
 
 - Initial release
