@@ -2,7 +2,7 @@
 
 # Claude Watch
 
-**Monitor Claude Code parallel subagents and tasks in real-time**
+**Monitor Claude Code sessions, subagents, and tasks in real-time**
 
 [![platform](https://img.shields.io/badge/platform-macOS%2015%2B-blue?style=flat-square)](https://github.com/sooink/claude-watch)
 [![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
@@ -13,18 +13,41 @@
 
 ## The Problem
 
-When using Claude Code's **Task tool** for parallel work, multiple subagents run simultaneously—each with its own context window, working on different parts of your codebase.
+When using Claude Code, it's hard to know what's happening:
 
-But there's no easy way to see what's happening:
-
-- How many subagents are running?
+- Is Claude still working, or did it finish?
+- How many subagents are running in parallel?
 - What is each one doing?
 - Which tasks are completed?
-- Is anything stuck or waiting?
 
 You're left checking the terminal or scrolling through logs to understand the current state.
 
-**Claude Watch provides a real-time dashboard** in your menu bar, showing all active projects, subagents, and tasks at a glance.
+**Claude Watch is a menu bar app** that provides a real-time dashboard, showing all active projects, subagents, and tasks at a glance.
+
+<div align="center">
+
+![Claude Watch Demo](https://github.com/sooink/claude-watch/raw/main/assets/demo.gif)
+
+</div>
+
+## Features
+
+| Feature | Description |
+|---------|-------------|
+| **Menu Bar Integration** | Always accessible from the menu bar |
+| **Auto-Detection** | Automatically detects Claude Code sessions |
+| **Subagent Tracking** | See all parallel subagents and their status |
+| **Task Progress** | View task checklist with completion status |
+| **Multi-Project** | Monitor multiple projects simultaneously |
+| **Session Status** | Real-time session indicator via Claude Code hooks |
+| **Notifications** | macOS notifications when sessions complete |
+| **Terminal Selection** | Choose your preferred terminal app (Terminal, iTerm2, Ghostty, Warp, Kitty, Alacritty) |
+| **Zero Configuration** | Just launch and it works |
+
+## Requirements
+
+- macOS 15.0 Sequoia or later
+- Xcode 16.0 or later (for building)
 
 ## Building
 
@@ -56,26 +79,6 @@ Or run in Terminal:
 ```bash
 xattr -cr build/ClaudeWatch.app
 ```
-
-## Features
-
-| Feature | Description |
-|---------|-------------|
-| **Menu Bar Integration** | Always accessible from the menu bar |
-| **Auto-Detection** | Automatically detects Claude Code sessions |
-| **Subagent Tracking** | See all parallel subagents and their status |
-| **Task Progress** | View task checklist with completion status |
-| **Multi-Project** | Monitor multiple projects simultaneously |
-| **Session Status** | Real-time session indicator via Claude Code hooks |
-| **Notifications** | macOS notifications when sessions complete |
-| **Terminal Selection** | Choose your preferred terminal app (Terminal, iTerm2, Ghostty, Warp, Kitty, Alacritty) |
-| **Zero Configuration** | Just launch and it works |
-
-<div align="center">
-
-![Claude Watch Demo](https://github.com/sooink/claude-watch/raw/main/assets/demo.gif)
-
-</div>
 
 ## How It Works
 
@@ -141,8 +144,3 @@ Claude Watch can integrate with Claude Code CLI hooks for enhanced session track
 | Completion Notifications | ✅ | ❌ |
 
 > **Note:** VSCode Claude Code Extension does not support hooks ([Issue #16114](https://github.com/anthropics/claude-code/issues/16114)). Session detection and notifications only work with the CLI.
-
-## Requirements
-
-- macOS 15.0 Sequoia or later
-- Xcode 16.0 or later
