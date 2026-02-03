@@ -68,6 +68,7 @@ xattr -cr build/ClaudeWatch.app
 | **Multi-Project** | Monitor multiple projects simultaneously |
 | **Session Status** | Real-time session indicator via Claude Code hooks |
 | **Notifications** | macOS notifications when sessions complete |
+| **Terminal Selection** | Choose your preferred terminal app (Terminal, iTerm2, Ghostty, Warp, Kitty, Alacritty) |
 | **Zero Configuration** | Just launch and it works |
 
 <div align="center">

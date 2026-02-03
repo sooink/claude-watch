@@ -18,6 +18,16 @@ struct SettingsView: View {
     var body: some View {
         Form {
             Section {
+                Picker("Open in", selection: $settings.preferredTerminal) {
+                    ForEach(TerminalApp.installedApps, id: \.self) { app in
+                        Text(app.displayName).tag(app)
+                    }
+                }
+            } header: {
+                Text("Terminal")
+            }
+
+            Section {
                 Toggle(isOn: Binding(
                     get: { settings.hookEnabled },
                     set: { newValue in

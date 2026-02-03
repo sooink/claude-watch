@@ -110,9 +110,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func toggleWindow() {
         guard let window = mainWindow else { return }
 
-        if window.isVisible {
+        if window.isVisible && window.isKeyWindow {
+            // Already visible and in front, so hide
             window.close()
         } else {
+            // Not visible or not in front, bring to front
             window.makeKeyAndOrderFront(nil)
             NSApp.activate(ignoringOtherApps: true)
         }
@@ -206,6 +208,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             settingsWindow?.contentView = hostingView
             settingsWindow?.title = "Settings"
             settingsWindow?.isReleasedWhenClosed = false
+            settingsWindow?.level = .floating
             settingsWindow?.center()
         }
 
@@ -216,7 +219,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func showAbout() {
         if aboutWindow == nil {
             aboutWindow = NSWindow(
-                contentRect: NSRect(x: 0, y: 0, width: 240, height: 200),
+                contentRect: NSRect(x: 0, y: 0, width: 320, height: 280),
                 styleMask: [.titled, .closable],
                 backing: .buffered,
                 defer: false
@@ -224,6 +227,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             aboutWindow?.contentView = NSHostingView(rootView: AboutView())
             aboutWindow?.title = "About Claude Watch"
             aboutWindow?.isReleasedWhenClosed = false
+            aboutWindow?.level = .floating
             aboutWindow?.center()
         }
 
@@ -242,6 +246,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             hookSetupWindow?.contentView = NSHostingView(rootView: HookSetupView())
             hookSetupWindow?.title = "Hook Setup Guide"
             hookSetupWindow?.isReleasedWhenClosed = false
+            hookSetupWindow?.level = .floating
             hookSetupWindow?.center()
         }
 
