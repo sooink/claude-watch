@@ -91,7 +91,7 @@ struct ProjectRow: View {
         }
         .background(
             RoundedRectangle(cornerRadius: 8)
-                .fill(Color(NSColor.controlBackgroundColor))
+                .fill(.thinMaterial)
                 .brightness(isHovered ? 0.05 : 0)
         )
         .clipShape(RoundedRectangle(cornerRadius: 8))

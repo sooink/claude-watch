@@ -72,6 +72,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         mainWindow?.contentView = NSHostingView(rootView: contentView)
         mainWindow?.title = "Claude Watch"
         mainWindow?.isReleasedWhenClosed = false  // Don't release when closed
+        mainWindow?.isOpaque = false
+        mainWindow?.backgroundColor = .clear
+        mainWindow?.titlebarAppearsTransparent = true
+        mainWindow?.styleMask.insert(.fullSizeContentView)
         mainWindow?.setFrameAutosaveName("MainWindow")  // Remember position
         mainWindow?.minSize = NSSize(width: 320, height: 300)
         mainWindow?.center()

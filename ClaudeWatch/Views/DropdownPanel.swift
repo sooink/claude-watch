@@ -19,7 +19,7 @@ struct DropdownPanel: View {
             .padding(12)
         }
         .frame(minWidth: 320, minHeight: 300)
-        .background(Color(NSColor.windowBackgroundColor))
+        .background(.ultraThinMaterial)
     }
 }
 
