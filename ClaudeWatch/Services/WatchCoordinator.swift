@@ -1,5 +1,8 @@
 import Foundation
 import SwiftUI
+import os.log
+
+private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "ClaudeWatch", category: "WatchCoordinator")
 
 /// Overall monitoring coordination
 @Observable
@@ -11,6 +14,9 @@ final class WatchCoordinator {
     private let processMonitor = ProcessMonitor()
     private var fileWatcher: FileWatcher?
     private let sessionParser = SessionParser()
+    private let socketServer = SocketServer()
+    private let notificationManager = NotificationManager.shared
+    private let settings = AppSettings.shared
 
     private let claudeProjectsPath: String
     private var updateTimer: Timer?
@@ -19,6 +25,8 @@ final class WatchCoordinator {
     private var pendingSubagents: [String: (projectId: String, name: String, startTime: Date)] = [:]
     // Map task ID to internally generated ID
     private var taskIdMap: [String: String] = [:]
+    // Map path to pending session status (for projects not yet created)
+    private var pendingSessionStatus: [String: SessionStatus] = [:]
 
     init() {
         // Use resolved path from symlink
@@ -34,6 +42,8 @@ final class WatchCoordinator {
             } ?? claudeDir
         claudeProjectsPath = resolvedPath + "/projects/"
         setupProcessMonitor()
+        setupSocketServer()
+        setupSettingsObserver()
     }
 
     private func setupProcessMonitor() {
@@ -42,6 +52,49 @@ final class WatchCoordinator {
         }
         processMonitor.onClaudeTerminated = { [weak self] in
             self?.onClaudeTerminated()
+        }
+    }
+
+    private func setupSocketServer() {
+        socketServer.onEventReceived = { [weak self] event in
+            self?.handleHookEvent(event)
+        }
+
+        // Sync hook state on startup
+        syncHookState()
+    }
+
+    private func syncHookState() {
+        let installer = HookInstaller.shared
+
+        if settings.hookEnabled {
+            // Hook enabled: ensure installed and start socket
+            if !installer.isInstalled {
+                try? installer.install()
+            }
+            socketServer.start()
+        } else {
+            // Hook disabled: ensure uninstalled
+            if installer.isInstalled {
+                try? installer.uninstall()
+            }
+        }
+    }
+
+    private func setupSettingsObserver() {
+        settings.onHookEnabledChanged = { [weak self] _ in
+            self?.syncHookState()
+        }
+
+        settings.onNotificationEnabledChanged = { [weak self] enabled in
+            if enabled {
+                self?.notificationManager.requestAuthorization()
+            }
+        }
+
+        // Request notification permission if already enabled on startup
+        if settings.notificationEnabled {
+            notificationManager.requestAuthorization()
         }
     }
 
@@ -55,6 +108,7 @@ final class WatchCoordinator {
         fileWatcher = nil
         updateTimer?.invalidate()
         updateTimer = nil
+        socketServer.stop()
         watchState = .stopped
     }
 
@@ -75,6 +129,7 @@ final class WatchCoordinator {
         projects.removeAll()
         pendingSubagents.removeAll()
         taskIdMap.removeAll()
+        pendingSessionStatus.removeAll()
     }
 
     private func startFileWatching() {
@@ -104,35 +159,22 @@ final class WatchCoordinator {
             guard FileManager.default.fileExists(atPath: projectPath, isDirectory: &isDirectory),
                   isDirectory.boolValue else { continue }
 
-            // Find most recently modified .jsonl file
-            if let sessionFile = findLatestSessionFile(in: projectPath) {
-                // On initial scan, only record file end position without parsing
-                // → Only parse new entries on subsequent file changes
+            // Skip to end of all .jsonl files to ignore existing content
+            // Only new entries after app launch will be parsed
+            for sessionFile in findAllSessionFiles(in: projectPath) {
                 sessionParser.skipToEnd(for: sessionFile)
             }
         }
     }
 
-    private func findLatestSessionFile(in directory: String) -> String? {
+    private func findAllSessionFiles(in directory: String) -> [String] {
         guard let contents = try? FileManager.default.contentsOfDirectory(atPath: directory) else {
-            return nil
+            return []
         }
 
-        let now = Date()
-        let activeThreshold: TimeInterval = 60 // Only consider files modified within last minute as active
-
-        let jsonlFiles = contents
+        return contents
             .filter { $0.hasSuffix(".jsonl") }
             .map { directory + "/" + $0 }
-            .compactMap { path -> (path: String, date: Date)? in
-                guard let attrs = try? FileManager.default.attributesOfItem(atPath: path),
-                      let modDate = attrs[.modificationDate] as? Date else { return nil }
-                return (path, modDate)
-            }
-            .filter { now.timeIntervalSince($0.date) < activeThreshold } // Active sessions only
-            .sorted { $0.date > $1.date }
-
-        return jsonlFiles.first?.path
     }
 
     private func handleFileEvents(_ events: [FileEvent]) {
@@ -230,10 +272,15 @@ final class WatchCoordinator {
 
         if existingById == nil && existingByPath == nil {
             // Add new project
+            // Apply pending session status if available
+            let initialStatus = pendingSessionStatus[path] ?? .unknown
+            pendingSessionStatus.removeValue(forKey: path)
+
             let project = Project(
                 id: projectId,
                 path: path,
-                sessionId: sessionId
+                sessionId: sessionId,
+                sessionStatus: initialStatus
             )
             projects.append(project)
             return projectId
@@ -329,6 +376,79 @@ final class WatchCoordinator {
             }
             pendingSubagents.removeValue(forKey: result.toolUseId)
         }
+    }
+
+    // MARK: - Hook Event Handling
+
+    private func handleHookEvent(_ event: HookEvent) {
+        let path = event.cwd
+
+        logger.info("Hook event received: \(event.event.rawValue) for path: \(path)")
+        logger.info("Current projects: \(self.projects.map { $0.path })")
+
+        switch event.event {
+        case .userPromptSubmit:
+            handleUserPromptSubmit(path: path, sessionId: event.sessionId)
+        case .stop:
+            handleSessionStop(path: path, sessionId: event.sessionId)
+        }
+    }
+
+    private func handleUserPromptSubmit(path: String, sessionId: String) {
+        // Normalize path (remove trailing slash)
+        let normalizedPath = path.hasSuffix("/") ? String(path.dropLast()) : path
+
+        logger.info("UserPromptSubmit: Looking for path '\(normalizedPath)'")
+        logger.info("UserPromptSubmit: Existing projects: \(self.projects.map { $0.path })")
+
+        // Find project by path
+        if let index = projects.firstIndex(where: { $0.path == normalizedPath }) {
+            projects[index].sessionStatus = .working
+            logger.info("UserPromptSubmit: Updated project '\(self.projects[index].displayName)' to working")
+        } else {
+            // Create new project for this session
+            let projectId = normalizedPath.replacingOccurrences(of: "/", with: "-")
+            let project = Project(
+                id: projectId,
+                path: normalizedPath,
+                sessionId: sessionId,
+                sessionStatus: .working
+            )
+            projects.append(project)
+            logger.info("UserPromptSubmit: Created new project '\(project.displayName)' with working status")
+
+            // Switch to active state
+            if watchState != .active {
+                watchState = .active
+            }
+        }
+    }
+
+    private func handleSessionStop(path: String, sessionId: String) {
+        // Normalize path (remove trailing slash)
+        let normalizedPath = path.hasSuffix("/") ? String(path.dropLast()) : path
+
+        logger.info("Stop: Looking for path '\(normalizedPath)'")
+        logger.info("Stop: Existing projects: \(self.projects.map { $0.path })")
+
+        // Find project by path
+        if let index = projects.firstIndex(where: { $0.path == normalizedPath }) {
+            projects[index].sessionStatus = .idle
+            logger.info("Stop: Updated project '\(self.projects[index].displayName)' to idle")
+
+            // Send notification if enabled
+            if settings.notificationEnabled {
+                notificationManager.sendSessionCompletedNotification(
+                    projectName: projects[index].displayName,
+                    path: normalizedPath
+                )
+            }
+        } else {
+            logger.info("Stop: No matching project found for path: \(normalizedPath)")
+        }
+
+        // Clean up pending status
+        pendingSessionStatus.removeValue(forKey: normalizedPath)
     }
 
     // Computed properties for UI

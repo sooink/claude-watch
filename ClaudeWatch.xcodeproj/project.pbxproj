@@ -26,6 +26,15 @@
 		A100000100000018 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A200000100000018 /* Assets.xcassets */; };
 		A100000100000019 /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000100000021 /* AboutView.swift */; };
 		A100000100000020 /* TitlebarStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000100000022 /* TitlebarStatusView.swift */; };
+		A100000100000023 /* SessionStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000100000023 /* SessionStatus.swift */; };
+		A100000100000024 /* HookEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000100000024 /* HookEvent.swift */; };
+		A100000100000025 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000100000025 /* AppSettings.swift */; };
+		A100000100000026 /* SocketServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000100000026 /* SocketServer.swift */; };
+		A100000100000027 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000100000027 /* NotificationManager.swift */; };
+		A100000100000028 /* SessionIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000100000028 /* SessionIndicator.swift */; };
+		A100000100000029 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000100000029 /* SettingsView.swift */; };
+		A100000100000030 /* HookSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000100000030 /* HookSetupView.swift */; };
+		A100000100000031 /* HookInstaller.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000100000031 /* HookInstaller.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -51,6 +60,15 @@
 		A200000100000020 /* ClaudeWatch.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ClaudeWatch.entitlements; sourceTree = "<group>"; };
 		A200000100000021 /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
 		A200000100000022 /* TitlebarStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TitlebarStatusView.swift; sourceTree = "<group>"; };
+		A200000100000023 /* SessionStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStatus.swift; sourceTree = "<group>"; };
+		A200000100000024 /* HookEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HookEvent.swift; sourceTree = "<group>"; };
+		A200000100000025 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
+		A200000100000026 /* SocketServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocketServer.swift; sourceTree = "<group>"; };
+		A200000100000027 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
+		A200000100000028 /* SessionIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionIndicator.swift; sourceTree = "<group>"; };
+		A200000100000029 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		A200000100000030 /* HookSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HookSetupView.swift; sourceTree = "<group>"; };
+		A200000100000031 /* HookInstaller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HookInstaller.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -102,6 +120,9 @@
 				A200000100000004 /* Project.swift */,
 				A200000100000005 /* Agent.swift */,
 				A200000100000006 /* TaskItem.swift */,
+				A200000100000023 /* SessionStatus.swift */,
+				A200000100000024 /* HookEvent.swift */,
+				A200000100000025 /* AppSettings.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -113,6 +134,9 @@
 				A200000100000009 /* FileWatcher.swift */,
 				A200000100000010 /* SessionParser.swift */,
 				A200000100000011 /* WatchCoordinator.swift */,
+				A200000100000026 /* SocketServer.swift */,
+				A200000100000027 /* NotificationManager.swift */,
+				A200000100000031 /* HookInstaller.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -128,6 +152,9 @@
 				A200000100000017 /* EmptyStateView.swift */,
 				A200000100000021 /* AboutView.swift */,
 				A200000100000022 /* TitlebarStatusView.swift */,
+				A200000100000028 /* SessionIndicator.swift */,
+				A200000100000029 /* SettingsView.swift */,
+				A200000100000030 /* HookSetupView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -227,6 +254,15 @@
 				A100000100000017 /* EmptyStateView.swift in Sources */,
 				A100000100000019 /* AboutView.swift in Sources */,
 				A100000100000020 /* TitlebarStatusView.swift in Sources */,
+				A100000100000023 /* SessionStatus.swift in Sources */,
+				A100000100000024 /* HookEvent.swift in Sources */,
+				A100000100000025 /* AppSettings.swift in Sources */,
+				A100000100000026 /* SocketServer.swift in Sources */,
+				A100000100000027 /* NotificationManager.swift in Sources */,
+				A100000100000028 /* SessionIndicator.swift in Sources */,
+				A100000100000029 /* SettingsView.swift in Sources */,
+				A100000100000030 /* HookSetupView.swift in Sources */,
+				A100000100000031 /* HookInstaller.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -371,7 +407,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.sooink.ClaudeWatch;
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.sooink.ClaudeWatch;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -398,7 +434,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.sooink.ClaudeWatch;
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.sooink.ClaudeWatch;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;

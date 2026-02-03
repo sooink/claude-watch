@@ -9,6 +9,7 @@ struct Project: Identifiable, Equatable {
     var tasks: [TaskItem]
     var isExpanded: Bool
     var startTime: Date
+    var sessionStatus: SessionStatus
 
     init(
         id: String,
@@ -17,7 +18,8 @@ struct Project: Identifiable, Equatable {
         subagents: [Subagent] = [],
         tasks: [TaskItem] = [],
         isExpanded: Bool = true,
-        startTime: Date = Date()
+        startTime: Date = Date(),
+        sessionStatus: SessionStatus = .unknown
     ) {
         self.id = id
         self.path = path
@@ -26,6 +28,7 @@ struct Project: Identifiable, Equatable {
         self.tasks = tasks
         self.isExpanded = isExpanded
         self.startTime = startTime
+        self.sessionStatus = sessionStatus
     }
 
     /// Display name (extracted from path)
@@ -72,6 +75,7 @@ struct Project: Identifiable, Equatable {
         lhs.sessionId == rhs.sessionId &&
         lhs.subagents == rhs.subagents &&
         lhs.tasks == rhs.tasks &&
-        lhs.isExpanded == rhs.isExpanded
+        lhs.isExpanded == rhs.isExpanded &&
+        lhs.sessionStatus == rhs.sessionStatus
     }
 }

@@ -26,8 +26,8 @@ struct AboutView: View {
                 .font(.caption2)
                 .foregroundColor(Color(NSColor.tertiaryLabelColor))
         }
-        .padding(24)
-        .frame(width: 240, height: 200)
+        .padding(32)
+        .frame(width: 320, height: 280)
     }
 
     private var appVersion: String {

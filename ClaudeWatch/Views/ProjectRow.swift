@@ -5,16 +5,25 @@ struct ProjectRow: View {
     @Binding var project: Project
     @State private var isHovered = false
 
+    private let settings = AppSettings.shared
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Project header (entire area clickable)
             Button(action: { project.isExpanded.toggle() }) {
                 VStack(alignment: .leading, spacing: 6) {
-                    // Project name
-                    Text(project.displayName)
-                        .font(.body.bold())
-                        .foregroundColor(.primary)
-                        .lineLimit(1)
+                    // Project name with session indicator
+                    HStack(spacing: 6) {
+                        if settings.hookEnabled &&
+                           settings.indicatorEnabled &&
+                           project.sessionStatus != .unknown {
+                            SessionIndicator(status: project.sessionStatus)
+                        }
+                        Text(project.displayName)
+                            .font(.body.bold())
+                            .foregroundColor(.primary)
+                            .lineLimit(1)
+                    }
 
                     // Summary info (collapsed state only)
                     if !project.isExpanded {
@@ -90,6 +99,32 @@ struct ProjectRow: View {
     }
 
     private func openTerminal(at path: String) {
+        let terminal = settings.preferredTerminal
+
+        // Fallback to Terminal.app if selected terminal is not installed
+        guard terminal.isInstalled else {
+            print("[ClaudeWatch] \(terminal.displayName) is not installed, falling back to Terminal.app")
+            openWithTerminalApp(path)
+            return
+        }
+
+        switch terminal {
+        case .terminal:
+            openWithTerminalApp(path)
+        case .iterm:
+            openWithITerm(path)
+        case .ghostty:
+            openWithGhostty(path)
+        case .warp:
+            openWithWarp(path)
+        case .kitty:
+            openWithKitty(path)
+        case .alacritty:
+            openWithAlacritty(path)
+        }
+    }
+
+    private func openWithTerminalApp(_ path: String) {
         let escapedPath = path.replacingOccurrences(of: "'", with: "'\\''")
         let script = """
         tell application "Terminal"
@@ -97,7 +132,92 @@ struct ProjectRow: View {
             do script "cd '\(escapedPath)'"
         end tell
         """
-        NSAppleScript(source: script)?.executeAndReturnError(nil)
+        var error: NSDictionary?
+        NSAppleScript(source: script)?.executeAndReturnError(&error)
+        if let error = error {
+            print("[ClaudeWatch] AppleScript error (Terminal): \(error)")
+        }
+    }
+
+    private func openWithITerm(_ path: String) {
+        let escapedPath = path.replacingOccurrences(of: "'", with: "'\\''")
+        let script = """
+        tell application "iTerm"
+            activate
+            set newWindow to (create window with default profile)
+            tell current session of newWindow
+                write text "cd '\(escapedPath)'"
+            end tell
+        end tell
+        """
+        var error: NSDictionary?
+        NSAppleScript(source: script)?.executeAndReturnError(&error)
+        if let error = error {
+            print("[ClaudeWatch] AppleScript error (iTerm): \(error)")
+        }
+    }
+
+    private func openWithGhostty(_ path: String) {
+        // Ghostty supports --working-directory flag
+        // Try to find ghostty CLI in common locations
+        let ghosttyPaths = [
+            "/Applications/Ghostty.app/Contents/MacOS/ghostty",
+            "/opt/homebrew/bin/ghostty",
+            "/usr/local/bin/ghostty"
+        ]
+
+        if let ghosttyPath = ghosttyPaths.first(where: { FileManager.default.fileExists(atPath: $0) }) {
+            let task = Process()
+            task.executableURL = URL(fileURLWithPath: ghosttyPath)
+            task.arguments = ["--working-directory=\(path)"]
+            try? task.run()
+        } else {
+            // Fallback: open app and cd
+            let task = Process()
+            task.executableURL = URL(fileURLWithPath: "/usr/bin/open")
+            task.arguments = ["-a", "Ghostty"]
+            try? task.run()
+        }
+    }
+
+    private func openWithWarp(_ path: String) {
+        // Warp supports URL scheme: warp://action/new_window?path=
+        if let encodedPath = path.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+           let url = URL(string: "warp://action/new_window?path=\(encodedPath)") {
+            NSWorkspace.shared.open(url)
+        }
+    }
+
+    private func openWithKitty(_ path: String) {
+        // Kitty supports --directory flag
+        let kittyPaths = [
+            "/Applications/kitty.app/Contents/MacOS/kitty",
+            "/opt/homebrew/bin/kitty",
+            "/usr/local/bin/kitty"
+        ]
+
+        if let kittyPath = kittyPaths.first(where: { FileManager.default.fileExists(atPath: $0) }) {
+            let task = Process()
+            task.executableURL = URL(fileURLWithPath: kittyPath)
+            task.arguments = ["--directory", path]
+            try? task.run()
+        }
+    }
+
+    private func openWithAlacritty(_ path: String) {
+        // Alacritty supports --working-directory flag
+        let alacrittyPaths = [
+            "/Applications/Alacritty.app/Contents/MacOS/alacritty",
+            "/opt/homebrew/bin/alacritty",
+            "/usr/local/bin/alacritty"
+        ]
+
+        if let alacrittyPath = alacrittyPaths.first(where: { FileManager.default.fileExists(atPath: $0) }) {
+            let task = Process()
+            task.executableURL = URL(fileURLWithPath: alacrittyPath)
+            task.arguments = ["--working-directory", path]
+            try? task.run()
+        }
     }
 
     private func copyPath(_ path: String) {
