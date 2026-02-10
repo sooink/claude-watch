@@ -27,6 +27,8 @@ final class WatchCoordinator {
     private var taskIdMap: [String: String] = [:]
     // Map path to pending session status (for projects not yet created)
     private var pendingSessionStatus: [String: SessionStatus] = [:]
+    // Map session ID to project ID for consistent lookup across hook/file events
+    private var sessionToProjectId: [String: String] = [:]
 
     init() {
         // Use resolved path from symlink
@@ -130,6 +132,7 @@ final class WatchCoordinator {
         pendingSubagents.removeAll()
         taskIdMap.removeAll()
         pendingSessionStatus.removeAll()
+        sessionToProjectId.removeAll()
     }
 
     private func startFileWatching() {
@@ -177,10 +180,39 @@ final class WatchCoordinator {
             .map { directory + "/" + $0 }
     }
 
+    private func normalizeProjectPath(_ path: String) -> String {
+        let standardizedPath = (path as NSString).standardizingPath
+        if standardizedPath == "/" {
+            return "/"
+        }
+        return standardizedPath.hasSuffix("/") ? String(standardizedPath.dropLast()) : standardizedPath
+    }
+
+    private func makeProjectId(from path: String) -> String {
+        let normalizedPath = normalizeProjectPath(path)
+        if normalizedPath == "/" {
+            return "-"
+        }
+        return normalizedPath.replacingOccurrences(of: "/", with: "-")
+    }
+
+    private func relativePathComponents(for path: String) -> [Substring] {
+        path.replacingOccurrences(of: claudeProjectsPath, with: "").split(separator: "/")
+    }
+
+    private func isMainSessionFile(_ path: String) -> Bool {
+        let components = relativePathComponents(for: path)
+        return components.count == 2 && components[1].hasSuffix(".jsonl")
+    }
+
     private func handleFileEvents(_ events: [FileEvent]) {
         // Separate remove and modify events
-        let removedPaths = events.filter { $0.type == .removed }.map(\.path)
-        let modifiedPaths = events.filter { $0.type == .modified }.map(\.path)
+        let removedPaths = events
+            .filter { $0.type == .removed && isMainSessionFile($0.path) }
+            .map(\.path)
+        let modifiedPaths = events
+            .filter { $0.type == .modified && isMainSessionFile($0.path) }
+            .map(\.path)
 
         // Handle deleted session files
         for path in removedPaths {
@@ -192,21 +224,29 @@ final class WatchCoordinator {
     }
 
     private func handleSessionRemoved(_ path: String) {
-        let pathComponents = path.replacingOccurrences(of: claudeProjectsPath, with: "").split(separator: "/")
+        let pathComponents = relativePathComponents(for: path)
         guard let projectHash = pathComponents.first else { return }
-        let projectId = String(projectHash)
+        let sessionId = URL(fileURLWithPath: path).deletingPathExtension().lastPathComponent
 
-        // If main session file is deleted (e.g., {sessionId}.jsonl)
-        // Remove the project
-        if let projectIndex = projects.firstIndex(where: { $0.id == projectId }) {
-            // Remove file info from session parser
-            sessionParser.removeFile(path)
+        // Remove file info from session parser
+        sessionParser.removeFile(path)
 
-            // Remove project
+        // Remove project by session mapping first
+        if let mappedProjectId = sessionToProjectId.removeValue(forKey: sessionId),
+           let projectIndex = projects.firstIndex(where: { $0.id == mappedProjectId }) {
             projects.remove(at: projectIndex)
 
             // Remove pending subagents associated with project
-            pendingSubagents = pendingSubagents.filter { $0.value.projectId != projectId }
+            pendingSubagents = pendingSubagents.filter { $0.value.projectId != mappedProjectId }
+            sessionToProjectId = sessionToProjectId.filter { $0.value != mappedProjectId }
+        } else {
+            // Legacy fallback: remove by project hash ID
+            let fallbackProjectId = String(projectHash)
+            if let projectIndex = projects.firstIndex(where: { $0.id == fallbackProjectId }) {
+                projects.remove(at: projectIndex)
+                pendingSubagents = pendingSubagents.filter { $0.value.projectId != fallbackProjectId }
+                sessionToProjectId = sessionToProjectId.filter { $0.value != fallbackProjectId }
+            }
         }
 
         // Change state if no active projects
@@ -224,26 +264,31 @@ final class WatchCoordinator {
             let toolResults = sessionParser.extractToolResult(from: entries)
 
             // Extract project info
-            let pathComponents = path.replacingOccurrences(of: claudeProjectsPath, with: "").split(separator: "/")
+            let pathComponents = relativePathComponents(for: path)
             guard let projectHash = pathComponents.first else { continue }
-            let projectId = String(projectHash)
+            let sessionProjectHash = String(projectHash)
 
             // Extract cwd from JSONL (exact path)
-            let originalPath = sessionParser.extractCwd(from: entries) ?? projectId.replacingOccurrences(of: "-", with: "/")
+            let fallbackPath = sessionProjectHash.replacingOccurrences(of: "-", with: "/")
+            let originalPath = sessionParser.extractCwd(from: entries) ?? fallbackPath
+            let normalizedPath = normalizeProjectPath(originalPath)
             let sessionId = URL(fileURLWithPath: path).deletingPathExtension().lastPathComponent
 
             // Process Tool Use (create project only when Task/TaskCreate exists)
             for toolUse in toolUses {
                 switch toolUse.name {
                 case "Task":
-                    let actualProjectId = ensureProjectExists(projectId: projectId, path: originalPath, sessionId: sessionId)
+                    let actualProjectId = ensureProjectExists(projectHash: sessionProjectHash, path: normalizedPath, sessionId: sessionId)
                     handleSubagentCreation(toolUse, projectId: actualProjectId)
                 case "TaskCreate":
-                    let actualProjectId = ensureProjectExists(projectId: projectId, path: originalPath, sessionId: sessionId)
+                    let actualProjectId = ensureProjectExists(projectHash: sessionProjectHash, path: normalizedPath, sessionId: sessionId)
                     handleTaskCreation(toolUse, projectId: actualProjectId)
                 case "TaskUpdate":
-                    // Find project by path (existing projects only)
-                    if let existingProject = projects.first(where: { $0.path == originalPath }) {
+                    // Prefer session mapping to avoid path drift mismatch
+                    if let mappedProjectId = sessionToProjectId[sessionId] {
+                        handleTaskUpdate(toolUse, projectId: mappedProjectId)
+                    } else if let existingProject = projects.first(where: { $0.path == normalizedPath }) {
+                        sessionToProjectId[sessionId] = existingProject.id
                         handleTaskUpdate(toolUse, projectId: existingProject.id)
                     }
                 default:
@@ -253,7 +298,7 @@ final class WatchCoordinator {
 
             // Process Tool Result (detect subagent completion)
             for result in toolResults {
-                handleToolResult(result, projectId: projectId)
+                handleToolResult(result)
             }
         }
 
@@ -265,44 +310,98 @@ final class WatchCoordinator {
 
     /// Create project if not exists and return actual project ID (with duplicate check)
     @discardableResult
-    private func ensureProjectExists(projectId: String, path: String, sessionId: String) -> String {
-        // Check duplicates by id or path
-        let existingById = projects.firstIndex(where: { $0.id == projectId })
-        let existingByPath = projects.firstIndex(where: { $0.path == path })
+    private func ensureProjectExists(projectHash: String, path: String, sessionId: String) -> String {
+        let normalizedPath = normalizeProjectPath(path)
+        let normalizedProjectId = makeProjectId(from: normalizedPath)
+        let existingByHash = projects.firstIndex(where: { $0.id == projectHash })
+        let existingById = projects.firstIndex(where: { $0.id == normalizedProjectId })
+        let existingByPath = projects.firstIndex(where: { $0.path == normalizedPath })
 
-        if existingById == nil && existingByPath == nil {
+        // Resolve by existing session mapping first
+        if let mappedProjectId = sessionToProjectId[sessionId] {
+            if let mappedIndex = projects.firstIndex(where: { $0.id == mappedProjectId }) {
+                if projects[mappedIndex].path != normalizedPath || projects[mappedIndex].sessionId != sessionId {
+                    projects[mappedIndex] = Project(
+                        id: projects[mappedIndex].id,
+                        path: normalizedPath,
+                        sessionId: sessionId,
+                        subagents: projects[mappedIndex].subagents,
+                        tasks: projects[mappedIndex].tasks,
+                        isExpanded: projects[mappedIndex].isExpanded,
+                        startTime: projects[mappedIndex].startTime,
+                        sessionStatus: projects[mappedIndex].sessionStatus
+                    )
+                }
+                return mappedProjectId
+            }
+            sessionToProjectId.removeValue(forKey: sessionId)
+        }
+
+        if existingByHash == nil && existingById == nil && existingByPath == nil {
             // Add new project
             // Apply pending session status if available
-            let initialStatus = pendingSessionStatus[path] ?? .unknown
-            pendingSessionStatus.removeValue(forKey: path)
+            let initialStatus = pendingSessionStatus[normalizedPath] ?? .unknown
+            pendingSessionStatus.removeValue(forKey: normalizedPath)
 
             let project = Project(
-                id: projectId,
-                path: path,
+                id: normalizedProjectId,
+                path: normalizedPath,
                 sessionId: sessionId,
                 sessionStatus: initialStatus
             )
             projects.append(project)
-            return projectId
+            sessionToProjectId[sessionId] = normalizedProjectId
+            return normalizedProjectId
         } else if let index = existingByPath {
             // Return existing project ID if same path exists
-            return projects[index].id
-        } else if let index = existingById {
-            // Update path if found by ID
-            if projects[index].path != path {
+            if projects[index].sessionId != sessionId {
                 projects[index] = Project(
                     id: projects[index].id,
-                    path: path,
+                    path: projects[index].path,
                     sessionId: sessionId,
                     subagents: projects[index].subagents,
                     tasks: projects[index].tasks,
                     isExpanded: projects[index].isExpanded,
-                    startTime: projects[index].startTime
+                    startTime: projects[index].startTime,
+                    sessionStatus: projects[index].sessionStatus
                 )
             }
-            return projectId
+            sessionToProjectId[sessionId] = projects[index].id
+            return projects[index].id
+        } else if let index = existingById {
+            // Update path/session if found by normalized ID
+            if projects[index].path != normalizedPath || projects[index].sessionId != sessionId {
+                projects[index] = Project(
+                    id: projects[index].id,
+                    path: normalizedPath,
+                    sessionId: sessionId,
+                    subagents: projects[index].subagents,
+                    tasks: projects[index].tasks,
+                    isExpanded: projects[index].isExpanded,
+                    startTime: projects[index].startTime,
+                    sessionStatus: projects[index].sessionStatus
+                )
+            }
+            sessionToProjectId[sessionId] = projects[index].id
+            return projects[index].id
+        } else if let index = existingByHash {
+            // Legacy fallback for projects created with hash ID
+            if projects[index].path != normalizedPath || projects[index].sessionId != sessionId {
+                projects[index] = Project(
+                    id: projects[index].id,
+                    path: normalizedPath,
+                    sessionId: sessionId,
+                    subagents: projects[index].subagents,
+                    tasks: projects[index].tasks,
+                    isExpanded: projects[index].isExpanded,
+                    startTime: projects[index].startTime,
+                    sessionStatus: projects[index].sessionStatus
+                )
+            }
+            sessionToProjectId[sessionId] = projects[index].id
+            return projects[index].id
         }
-        return projectId
+        return normalizedProjectId
     }
 
     private func handleSubagentCreation(_ toolUse: ToolUseEvent, projectId: String) {
@@ -366,7 +465,7 @@ final class WatchCoordinator {
         }
     }
 
-    private func handleToolResult(_ result: (toolUseId: String, content: String, timestamp: Date?), projectId: String) {
+    private func handleToolResult(_ result: (toolUseId: String, content: String, timestamp: Date?)) {
         // Check subagent completion (use projectId stored in pendingSubagents)
         if let pending = pendingSubagents[result.toolUseId] {
             if let projectIndex = projects.firstIndex(where: { $0.id == pending.projectId }),
@@ -395,44 +494,44 @@ final class WatchCoordinator {
     }
 
     private func handleUserPromptSubmit(path: String, sessionId: String) {
-        // Normalize path (remove trailing slash)
-        let normalizedPath = path.hasSuffix("/") ? String(path.dropLast()) : path
+        let normalizedPath = normalizeProjectPath(path)
 
         logger.info("UserPromptSubmit: Looking for path '\(normalizedPath)'")
         logger.info("UserPromptSubmit: Existing projects: \(self.projects.map { $0.path })")
 
-        // Find project by path
-        if let index = projects.firstIndex(where: { $0.path == normalizedPath }) {
+        if let mappedProjectId = sessionToProjectId[sessionId],
+           let index = projects.firstIndex(where: { $0.id == mappedProjectId }) {
             projects[index].sessionStatus = .working
             logger.info("UserPromptSubmit: Updated project '\(self.projects[index].displayName)' to working")
-        } else {
-            // Create new project for this session
-            let projectId = normalizedPath.replacingOccurrences(of: "/", with: "-")
-            let project = Project(
-                id: projectId,
-                path: normalizedPath,
-                sessionId: sessionId,
-                sessionStatus: .working
-            )
-            projects.append(project)
-            logger.info("UserPromptSubmit: Created new project '\(project.displayName)' with working status")
+            return
+        }
 
-            // Switch to active state
-            if watchState != .active {
-                watchState = .active
-            }
+        let projectId = ensureProjectExists(projectHash: makeProjectId(from: normalizedPath), path: normalizedPath, sessionId: sessionId)
+        if let index = projects.firstIndex(where: { $0.id == projectId }) {
+            projects[index].sessionStatus = .working
+            logger.info("UserPromptSubmit: Updated project '\(self.projects[index].displayName)' to working")
+        }
+
+        // Switch to active state
+        if watchState != .active {
+            watchState = .active
         }
     }
 
     private func handleSessionStop(path: String, sessionId: String) {
-        // Normalize path (remove trailing slash)
-        let normalizedPath = path.hasSuffix("/") ? String(path.dropLast()) : path
+        let normalizedPath = normalizeProjectPath(path)
 
         logger.info("Stop: Looking for path '\(normalizedPath)'")
         logger.info("Stop: Existing projects: \(self.projects.map { $0.path })")
 
-        // Find project by path
-        if let index = projects.firstIndex(where: { $0.path == normalizedPath }) {
+        let targetIndex: Int?
+        if let mappedProjectId = sessionToProjectId[sessionId] {
+            targetIndex = projects.firstIndex(where: { $0.id == mappedProjectId })
+        } else {
+            targetIndex = projects.firstIndex(where: { $0.path == normalizedPath })
+        }
+
+        if let index = targetIndex {
             projects[index].sessionStatus = .idle
             logger.info("Stop: Updated project '\(self.projects[index].displayName)' to idle")
 
@@ -440,7 +539,7 @@ final class WatchCoordinator {
             if settings.notificationEnabled {
                 notificationManager.sendSessionCompletedNotification(
                     projectName: projects[index].displayName,
-                    path: normalizedPath
+                    path: projects[index].path
                 )
             }
         } else {

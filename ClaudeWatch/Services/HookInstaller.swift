@@ -45,10 +45,16 @@ final class HookInstaller {
 
     // MARK: - Private
 
+    /// Script template shown in manual setup and written during install
+    var hookScriptTemplate: String {
+        hookScript
+    }
+
     private var hookScript: String {
         """
         #!/bin/bash
         # Claude Watch Hook Script
+        # Claude Code passes hook context as JSON via stdin.
 
         EVENT_NAME="$1"
 
@@ -64,11 +70,57 @@ final class HookInstaller {
             exit 0
         fi
 
-        # Get session_id from CLAUDE_SESSION_ID env var
-        SESSION_ID="${CLAUDE_SESSION_ID:-unknown}"
+        # Read hook payload JSON from stdin
+        HOOK_INPUT="$(cat)"
 
-        # Send event to Claude Watch
-        echo "{\\\"event\\\":\\\"$EVENT_NAME\\\",\\\"session_id\\\":\\\"$SESSION_ID\\\",\\\"cwd\\\":\\\"$PWD\\\"}" | nc -U "$SOCKET_PATH" 2>/dev/null
+        json_escape() {
+            printf '%s' "$1" | sed 's/\\\\/\\\\\\\\/g; s/"/\\\\"/g'
+        }
+
+        build_fallback_payload() {
+            local session_id cwd
+            session_id="${CLAUDE_SESSION_ID:-unknown}"
+            cwd="${CLAUDE_PROJECT_DIR:-$PWD}"
+
+            printf '{"event":"%s","session_id":"%s","cwd":"%s"}\\n' \\
+                "$(json_escape "$EVENT_NAME")" \\
+                "$(json_escape "$session_id")" \\
+                "$(json_escape "$cwd")"
+        }
+
+        # Prefer official stdin payload, fallback to env vars for compatibility.
+        if command -v python3 >/dev/null 2>&1; then
+            EVENT_PAYLOAD="$(printf '%s' "$HOOK_INPUT" | python3 -c '
+        import json
+        import os
+        import sys
+
+        event_name = sys.argv[1]
+        raw = sys.stdin.read().strip()
+        try:
+            data = json.loads(raw) if raw else {}
+        except Exception:
+            data = {}
+
+        session_id = data.get("session_id") or os.getenv("CLAUDE_SESSION_ID") or "unknown"
+        cwd = data.get("cwd") or data.get("project_dir") or os.getenv("CLAUDE_PROJECT_DIR") or os.getcwd()
+
+        print(json.dumps({
+            "event": event_name,
+            "session_id": session_id,
+            "cwd": cwd
+        }))
+        ' "$EVENT_NAME" 2>/dev/null)"
+        else
+            EVENT_PAYLOAD=""
+        fi
+
+        if [[ -z "$EVENT_PAYLOAD" ]]; then
+            EVENT_PAYLOAD="$(build_fallback_payload)"
+        fi
+
+        # Send normalized event to Claude Watch
+        printf '%s\\n' "$EVENT_PAYLOAD" | nc -U "$SOCKET_PATH" 2>/dev/null
 
         exit 0
         """

@@ -17,33 +17,7 @@ struct HookSetupView: View {
     }
 
     private var hookScript: String {
-        """
-        #!/bin/bash
-        # Claude Watch Hook Script
-        # Save to: ~/.claude/hooks/claude-watch-hook.sh
-
-        EVENT_NAME="$1"
-
-        # Only handle UserPromptSubmit and Stop events
-        if [[ "$EVENT_NAME" != "UserPromptSubmit" && "$EVENT_NAME" != "Stop" ]]; then
-            exit 0
-        fi
-
-        SOCKET_PATH="\(socketPath)"
-
-        # Check if socket exists
-        if [[ ! -S "$SOCKET_PATH" ]]; then
-            exit 0
-        fi
-
-        # Get session_id from CLAUDE_SESSION_ID env var
-        SESSION_ID="${CLAUDE_SESSION_ID:-unknown}"
-
-        # Send event to Claude Watch
-        echo "{\\\"event\\\":\\\"$EVENT_NAME\\\",\\\"session_id\\\":\\\"$SESSION_ID\\\",\\\"cwd\\\":\\\"$PWD\\\"}" | nc -U "$SOCKET_PATH" 2>/dev/null
-
-        exit 0
-        """
+        HookInstaller.shared.hookScriptTemplate
     }
 
     private var settingsJson: String {
