@@ -115,9 +115,41 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             window.close()
         } else {
             // Not visible or not in front, bring to front
+            moveWindowToCurrentScreenIfNeeded(window)
             window.makeKeyAndOrderFront(nil)
             NSApp.activate(ignoringOtherApps: true)
         }
+    }
+
+    private func moveWindowToCurrentScreenIfNeeded(_ window: NSWindow) {
+        guard let targetScreen = currentInteractionScreen() else { return }
+
+        // Keep user-defined position if already on current screen.
+        if targetScreen.frame.intersects(window.frame) {
+            return
+        }
+
+        let visibleFrame = targetScreen.visibleFrame
+        var newFrame = window.frame
+        newFrame.size.width = min(newFrame.width, visibleFrame.width)
+        newFrame.size.height = min(newFrame.height, visibleFrame.height)
+        newFrame.origin.x = visibleFrame.midX - (newFrame.width / 2)
+        newFrame.origin.y = visibleFrame.midY - (newFrame.height / 2)
+
+        window.setFrame(newFrame, display: false)
+    }
+
+    private func currentInteractionScreen() -> NSScreen? {
+        if let screen = statusItem?.button?.window?.screen {
+            return screen
+        }
+
+        let mouseLocation = NSEvent.mouseLocation
+        if let mouseScreen = NSScreen.screens.first(where: { NSMouseInRect(mouseLocation, $0.frame, false) }) {
+            return mouseScreen
+        }
+
+        return NSScreen.main
     }
 
     private func showContextMenu() {
