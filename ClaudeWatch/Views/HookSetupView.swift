@@ -24,6 +24,39 @@ struct HookSetupView: View {
         """
         {
           "hooks": {
+            "PreToolUse": [
+              {
+                "matcher": "Task",
+                "hooks": [
+                  {
+                    "type": "command",
+                    "command": "~/.claude/hooks/claude-watch-hook.sh PreToolUse"
+                  }
+                ]
+              }
+            ],
+            "PostToolUse": [
+              {
+                "matcher": "Task",
+                "hooks": [
+                  {
+                    "type": "command",
+                    "command": "~/.claude/hooks/claude-watch-hook.sh PostToolUse"
+                  }
+                ]
+              }
+            ],
+            "PostToolUseFailure": [
+              {
+                "matcher": "Task",
+                "hooks": [
+                  {
+                    "type": "command",
+                    "command": "~/.claude/hooks/claude-watch-hook.sh PostToolUseFailure"
+                  }
+                ]
+              }
+            ],
             "UserPromptSubmit": [
               {
                 "hooks": [

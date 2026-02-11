@@ -58,8 +58,12 @@ final class HookInstaller {
 
         EVENT_NAME="$1"
 
-        # Only handle UserPromptSubmit and Stop events
-        if [[ "$EVENT_NAME" != "UserPromptSubmit" && "$EVENT_NAME" != "Stop" ]]; then
+        # Only handle events used by Claude Watch
+        if [[ "$EVENT_NAME" != "UserPromptSubmit" &&
+              "$EVENT_NAME" != "Stop" &&
+              "$EVENT_NAME" != "PreToolUse" &&
+              "$EVENT_NAME" != "PostToolUse" &&
+              "$EVENT_NAME" != "PostToolUseFailure" ]]; then
             exit 0
         fi
 
@@ -104,12 +108,37 @@ final class HookInstaller {
 
         session_id = data.get("session_id") or os.getenv("CLAUDE_SESSION_ID") or "unknown"
         cwd = data.get("cwd") or data.get("project_dir") or os.getenv("CLAUDE_PROJECT_DIR") or os.getcwd()
+        tool_name = data.get("tool_name")
+        tool_use_id = data.get("tool_use_id")
+        tool_input = data.get("tool_input") if isinstance(data.get("tool_input"), dict) else {}
 
-        print(json.dumps({
+        task_description = None
+        subagent_type = None
+        if isinstance(tool_input, dict):
+            description_value = tool_input.get("description")
+            if isinstance(description_value, str):
+                task_description = description_value
+
+            subagent_type_value = tool_input.get("subagent_type")
+            if isinstance(subagent_type_value, str):
+                subagent_type = subagent_type_value
+
+        payload = {
             "event": event_name,
             "session_id": session_id,
             "cwd": cwd
-        }))
+        }
+
+        if isinstance(tool_name, str) and tool_name:
+            payload["tool_name"] = tool_name
+        if isinstance(tool_use_id, str) and tool_use_id:
+            payload["tool_use_id"] = tool_use_id
+        if task_description:
+            payload["task_description"] = task_description
+        if subagent_type:
+            payload["subagent_type"] = subagent_type
+
+        print(json.dumps(payload))
         ' "$EVENT_NAME" 2>/dev/null)"
         else
             EVENT_PAYLOAD=""
@@ -147,6 +176,33 @@ final class HookInstaller {
                 ]
             ]
         ]
+        let preToolUseMatcherGroup: [String: Any] = [
+            "matcher": "Task",
+            "hooks": [
+                [
+                    "type": "command",
+                    "command": "~/.claude/hooks/claude-watch-hook.sh PreToolUse"
+                ]
+            ]
+        ]
+        let postToolUseMatcherGroup: [String: Any] = [
+            "matcher": "Task",
+            "hooks": [
+                [
+                    "type": "command",
+                    "command": "~/.claude/hooks/claude-watch-hook.sh PostToolUse"
+                ]
+            ]
+        ]
+        let postToolUseFailureMatcherGroup: [String: Any] = [
+            "matcher": "Task",
+            "hooks": [
+                [
+                    "type": "command",
+                    "command": "~/.claude/hooks/claude-watch-hook.sh PostToolUseFailure"
+                ]
+            ]
+        ]
 
         // Get or create hooks dictionary
         var hooks = settings["hooks"] as? [String: Any] ?? [:]
@@ -164,6 +220,27 @@ final class HookInstaller {
             stopGroups.append(stopMatcherGroup)
         }
         hooks["Stop"] = stopGroups
+
+        // Update PreToolUse hooks
+        var preToolUseGroups = hooks["PreToolUse"] as? [[String: Any]] ?? []
+        if !preToolUseGroups.contains(where: { isClaudeWatchMatcherGroup($0) }) {
+            preToolUseGroups.append(preToolUseMatcherGroup)
+        }
+        hooks["PreToolUse"] = preToolUseGroups
+
+        // Update PostToolUse hooks
+        var postToolUseGroups = hooks["PostToolUse"] as? [[String: Any]] ?? []
+        if !postToolUseGroups.contains(where: { isClaudeWatchMatcherGroup($0) }) {
+            postToolUseGroups.append(postToolUseMatcherGroup)
+        }
+        hooks["PostToolUse"] = postToolUseGroups
+
+        // Update PostToolUseFailure hooks
+        var postToolUseFailureGroups = hooks["PostToolUseFailure"] as? [[String: Any]] ?? []
+        if !postToolUseFailureGroups.contains(where: { isClaudeWatchMatcherGroup($0) }) {
+            postToolUseFailureGroups.append(postToolUseFailureMatcherGroup)
+        }
+        hooks["PostToolUseFailure"] = postToolUseFailureGroups
 
         settings["hooks"] = hooks
 
@@ -192,6 +269,36 @@ final class HookInstaller {
                 hooks.removeValue(forKey: "Stop")
             } else {
                 hooks["Stop"] = stopGroups
+            }
+        }
+
+        // Remove Claude Watch matcher groups from PreToolUse
+        if var preToolUseGroups = hooks["PreToolUse"] as? [[String: Any]] {
+            preToolUseGroups.removeAll { isClaudeWatchMatcherGroup($0) }
+            if preToolUseGroups.isEmpty {
+                hooks.removeValue(forKey: "PreToolUse")
+            } else {
+                hooks["PreToolUse"] = preToolUseGroups
+            }
+        }
+
+        // Remove Claude Watch matcher groups from PostToolUse
+        if var postToolUseGroups = hooks["PostToolUse"] as? [[String: Any]] {
+            postToolUseGroups.removeAll { isClaudeWatchMatcherGroup($0) }
+            if postToolUseGroups.isEmpty {
+                hooks.removeValue(forKey: "PostToolUse")
+            } else {
+                hooks["PostToolUse"] = postToolUseGroups
+            }
+        }
+
+        // Remove Claude Watch matcher groups from PostToolUseFailure
+        if var postToolUseFailureGroups = hooks["PostToolUseFailure"] as? [[String: Any]] {
+            postToolUseFailureGroups.removeAll { isClaudeWatchMatcherGroup($0) }
+            if postToolUseFailureGroups.isEmpty {
+                hooks.removeValue(forKey: "PostToolUseFailure")
+            } else {
+                hooks["PostToolUseFailure"] = postToolUseFailureGroups
             }
         }
 

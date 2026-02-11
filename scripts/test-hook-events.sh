@@ -55,8 +55,68 @@ echo -e "${YELLOW}(Check for green blinking indicator in Claude Watch UI)${NC}"
 sleep 3
 echo -e "   ${GREEN}OK${NC}"
 
-# 4. Send Stop event
-echo -n "4. Sending Stop event... "
+# 4. Send PreToolUse(Task) event
+TOOL_USE_ID="toolu-test-$(date +%s)"
+echo -n "4. Sending PreToolUse(Task) event... "
+PAYLOAD="{\"event\":\"PreToolUse\",\"session_id\":\"$SESSION_ID\",\"cwd\":\"$TEST_CWD\",\"tool_name\":\"Task\",\"tool_use_id\":\"$TOOL_USE_ID\",\"tool_input\":{\"description\":\"Hook test subagent\",\"subagent_type\":\"Explore\"}}"
+echo -e "${YELLOW}payload: $PAYLOAD${NC}"
+RESULT=$(echo "$PAYLOAD" | nc -U "$SOCKET_PATH" 2>&1)
+if [ $? -eq 0 ]; then
+    echo -e "   ${GREEN}OK${NC}"
+else
+    echo -e "   ${RED}FAIL${NC}"
+    echo "   $RESULT"
+    exit 1
+fi
+
+# 5. Wait
+echo -n "5. Waiting 2 seconds... "
+echo -e "${YELLOW}(Check for subagent running row in Claude Watch UI)${NC}"
+sleep 2
+echo -e "   ${GREEN}OK${NC}"
+
+# 6. Send PostToolUse(Task) event
+echo -n "6. Sending PostToolUse(Task) event... "
+PAYLOAD="{\"event\":\"PostToolUse\",\"session_id\":\"$SESSION_ID\",\"cwd\":\"$TEST_CWD\",\"tool_name\":\"Task\",\"tool_use_id\":\"$TOOL_USE_ID\"}"
+echo -e "${YELLOW}payload: $PAYLOAD${NC}"
+RESULT=$(echo "$PAYLOAD" | nc -U "$SOCKET_PATH" 2>&1)
+if [ $? -eq 0 ]; then
+    echo -e "   ${GREEN}OK${NC}"
+else
+    echo -e "   ${RED}FAIL${NC}"
+    echo "   $RESULT"
+    exit 1
+fi
+
+# 7. Send another PreToolUse(Task) event for failure case
+TOOL_USE_ID_FAIL="toolu-test-fail-$(date +%s)"
+echo -n "7. Sending PreToolUse(Task) event (failure case)... "
+PAYLOAD="{\"event\":\"PreToolUse\",\"session_id\":\"$SESSION_ID\",\"cwd\":\"$TEST_CWD\",\"tool_name\":\"Task\",\"tool_use_id\":\"$TOOL_USE_ID_FAIL\",\"tool_input\":{\"description\":\"Hook fail subagent\",\"subagent_type\":\"Bash\"}}"
+echo -e "${YELLOW}payload: $PAYLOAD${NC}"
+RESULT=$(echo "$PAYLOAD" | nc -U "$SOCKET_PATH" 2>&1)
+if [ $? -eq 0 ]; then
+    echo -e "   ${GREEN}OK${NC}"
+else
+    echo -e "   ${RED}FAIL${NC}"
+    echo "   $RESULT"
+    exit 1
+fi
+
+# 8. Send PostToolUseFailure(Task) event
+echo -n "8. Sending PostToolUseFailure(Task) event... "
+PAYLOAD="{\"event\":\"PostToolUseFailure\",\"session_id\":\"$SESSION_ID\",\"cwd\":\"$TEST_CWD\",\"tool_name\":\"Task\",\"tool_use_id\":\"$TOOL_USE_ID_FAIL\"}"
+echo -e "${YELLOW}payload: $PAYLOAD${NC}"
+RESULT=$(echo "$PAYLOAD" | nc -U "$SOCKET_PATH" 2>&1)
+if [ $? -eq 0 ]; then
+    echo -e "   ${GREEN}OK${NC}"
+else
+    echo -e "   ${RED}FAIL${NC}"
+    echo "   $RESULT"
+    exit 1
+fi
+
+# 9. Send Stop event
+echo -n "9. Sending Stop event... "
 PAYLOAD="{\"event\":\"Stop\",\"session_id\":\"$SESSION_ID\",\"cwd\":\"$TEST_CWD\"}"
 echo -e "${YELLOW}payload: $PAYLOAD${NC}"
 RESULT=$(echo "$PAYLOAD" | nc -U "$SOCKET_PATH" 2>&1)
@@ -78,5 +138,8 @@ echo "  - Socket communication: Success"
 echo ""
 echo -e "${YELLOW}Expected UI behavior:${NC}"
 echo "  - UserPromptSubmit: Green blinking indicator appears (working)"
+echo "  - PreToolUse(Task): New subagent appears as running"
+echo "  - PostToolUse(Task): Same subagent changes to completed"
+echo "  - PostToolUseFailure(Task): Same subagent changes to error"
 echo "  - Stop: Indicator turns gray (idle)"
 echo ""

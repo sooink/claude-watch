@@ -466,15 +466,81 @@ final class WatchCoordinator {
     }
 
     private func handleToolResult(_ result: (toolUseId: String, content: String, timestamp: Date?)) {
+        updateSubagentStatus(toolUseId: result.toolUseId, status: .completed, timestamp: result.timestamp)
+    }
+
+    private func updateSubagentStatus(toolUseId: String, status: SubagentStatus, timestamp: Date?) {
+        let endTime = timestamp ?? Date()
+
         // Check subagent completion (use projectId stored in pendingSubagents)
-        if let pending = pendingSubagents[result.toolUseId] {
-            if let projectIndex = projects.firstIndex(where: { $0.id == pending.projectId }),
-               let subagentIndex = projects[projectIndex].subagents.firstIndex(where: { $0.id == result.toolUseId }) {
-                projects[projectIndex].subagents[subagentIndex].status = .completed
-                projects[projectIndex].subagents[subagentIndex].endTime = result.timestamp ?? Date()
-            }
-            pendingSubagents.removeValue(forKey: result.toolUseId)
+        if let pending = pendingSubagents[toolUseId],
+           let projectIndex = projects.firstIndex(where: { $0.id == pending.projectId }),
+           let subagentIndex = projects[projectIndex].subagents.firstIndex(where: { $0.id == toolUseId }) {
+            projects[projectIndex].subagents[subagentIndex].status = status
+            projects[projectIndex].subagents[subagentIndex].endTime = endTime
+            pendingSubagents.removeValue(forKey: toolUseId)
+            return
         }
+
+        // Fallback when pending mapping is unavailable
+        for projectIndex in projects.indices {
+            if let subagentIndex = projects[projectIndex].subagents.firstIndex(where: { $0.id == toolUseId }) {
+                projects[projectIndex].subagents[subagentIndex].status = status
+                projects[projectIndex].subagents[subagentIndex].endTime = endTime
+                pendingSubagents.removeValue(forKey: toolUseId)
+                return
+            }
+        }
+
+        pendingSubagents.removeValue(forKey: toolUseId)
+    }
+
+    private func handleTaskToolStart(from event: HookEvent) {
+        guard let toolUseId = event.toolUseId else { return }
+        guard event.toolName == nil || event.toolName == "Task" else { return }
+
+        let normalizedPath = normalizeProjectPath(event.cwd)
+        let projectHash = makeProjectId(from: normalizedPath)
+        let projectId = ensureProjectExists(projectHash: projectHash, path: normalizedPath, sessionId: event.sessionId)
+
+        guard let projectIndex = projects.firstIndex(where: { $0.id == projectId }) else { return }
+
+        // Hook integration means Claude is currently running.
+        if projects[projectIndex].sessionStatus != .working {
+            projects[projectIndex].sessionStatus = .working
+        }
+
+        if projects[projectIndex].subagents.contains(where: { $0.id == toolUseId }) {
+            return
+        }
+
+        let name = event.taskDescription ?? event.subagentType ?? "Subagent"
+        let startTime = Date()
+        let subagent = Subagent(
+            id: toolUseId,
+            name: name,
+            status: .running,
+            startTime: startTime
+        )
+
+        projects[projectIndex].subagents.append(subagent)
+        pendingSubagents[toolUseId] = (projectId: projects[projectIndex].id, name: name, startTime: startTime)
+
+        if watchState != .active {
+            watchState = .active
+        }
+    }
+
+    private func handleTaskToolCompleted(from event: HookEvent) {
+        guard let toolUseId = event.toolUseId else { return }
+        guard event.toolName == nil || event.toolName == "Task" else { return }
+        updateSubagentStatus(toolUseId: toolUseId, status: .completed, timestamp: Date())
+    }
+
+    private func handleTaskToolFailed(from event: HookEvent) {
+        guard let toolUseId = event.toolUseId else { return }
+        guard event.toolName == nil || event.toolName == "Task" else { return }
+        updateSubagentStatus(toolUseId: toolUseId, status: .error, timestamp: Date())
     }
 
     // MARK: - Hook Event Handling
@@ -490,6 +556,12 @@ final class WatchCoordinator {
             handleUserPromptSubmit(path: path, sessionId: event.sessionId)
         case .stop:
             handleSessionStop(path: path, sessionId: event.sessionId)
+        case .preToolUse:
+            handleTaskToolStart(from: event)
+        case .postToolUse:
+            handleTaskToolCompleted(from: event)
+        case .postToolUseFailure:
+            handleTaskToolFailed(from: event)
         }
     }
 
